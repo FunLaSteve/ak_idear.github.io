@@ -41,7 +41,6 @@
       padding: 20px;
     }
 
-    /* TE Outer Frame */
     .te-device {
       width: 100%;
       max-width: 520px;
@@ -114,7 +113,6 @@
       50% { opacity: 0.4; }
     }
 
-    /* Main Navigation Tabs */
     .nav-tabs {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -147,7 +145,6 @@
       background: #E0DFDA;
     }
 
-    /* Tab Content Views */
     .view-content {
       display: none;
     }
@@ -164,7 +161,6 @@
       background: var(--card-bg);
     }
 
-    /* Left Side: Time Column */
     .time-column {
       display: flex;
       flex-direction: column;
@@ -188,13 +184,11 @@
       border-bottom: var(--border-width) solid var(--border-color);
     }
 
-    /* Right Side Cards Column */
     .cards-column {
       display: flex;
       flex-direction: column;
     }
 
-    /* Card Item (Strictly Fixed Dimensions) */
     .exam-card {
       position: relative;
       padding: 10px 14px 8px 14px;
@@ -211,12 +205,17 @@
       border-bottom: none;
     }
 
-    /* Category Badges */
     .badge-container {
       display: flex;
       align-items: center;
+      justify-content: space-between;
+      height: 20px;
+    }
+
+    .badge-group {
+      display: flex;
+      align-items: center;
       gap: 5px;
-      height: 20px; /* Fixed height for top label row */
     }
 
     .badge {
@@ -243,6 +242,13 @@
       display: inline-block;
     }
 
+    .pool-counter {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--sub-text);
+      letter-spacing: 0.5px;
+    }
+
     .timestamp-inline {
       font-size: 11px;
       font-weight: 600;
@@ -250,13 +256,13 @@
       margin-left: 6px;
     }
 
-    /* Result Display Area (Fixed Height to Prevent Layout Shift) */
+    /* Result Display Area */
     .result-display {
       font-size: 36px;
       font-weight: 900;
       text-align: center;
       letter-spacing: 3px;
-      height: 52px; /* Fixed result display height */
+      height: 52px;
       line-height: 52px;
       display: flex;
       align-items: center;
@@ -270,11 +276,10 @@
       color: var(--accent-orange);
     }
 
-    /* Compact Rectangular Action Buttons */
     .card-action-bar {
       display: flex;
       justify-content: flex-end;
-      height: 22px; /* Fixed bottom button row height */
+      height: 22px;
     }
 
     .btn-action-compact {
@@ -409,7 +414,6 @@
       color: #FFFFFF;
     }
 
-    /* Footer Specs */
     .device-footer {
       margin-top: 16px;
       padding-top: 10px;
@@ -426,13 +430,11 @@
 <body>
 
   <div class="te-device">
-    <!-- TE Industrial Metal Screws -->
     <div class="screw tl"></div>
     <div class="screw tr"></div>
     <div class="screw bl"></div>
     <div class="screw br"></div>
 
-    <!-- Header Status Bar -->
     <div class="device-header">
       <div class="brand-tag">
         <div class="status-led"></div>
@@ -441,27 +443,27 @@
       <div>室設乙模擬考</div>
     </div>
 
-    <!-- Navigation Tabs -->
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="switchTab('draw')">抽題</button>
       <button class="tab-btn" onclick="switchTab('history')">記錄</button>
     </div>
 
-    <!-- VIEW 1: DRAW TAB (抽題) -->
+    <!-- VIEW 1: DRAW TAB -->
     <div id="view-draw" class="view-content active">
       <div class="draw-grid">
-        <!-- Left Time Column -->
         <div class="time-column">
           <div class="time-block morning">上午</div>
           <div class="time-block afternoon">下午</div>
         </div>
 
-        <!-- Right 4 Exam Category Cards -->
         <div class="cards-column">
           <!-- Card 1: 平配 -->
           <div class="exam-card">
             <div class="badge-container">
-              <span class="badge">平配</span>
+              <div class="badge-group">
+                <span class="badge">平配</span>
+              </div>
+              <span class="pool-counter" id="cnt-pingpei">36/36</span>
             </div>
             <div class="result-display" id="res-pingpei"></div>
             <div class="card-action-bar">
@@ -472,8 +474,11 @@
           <!-- Card 2: 天 / 立 -->
           <div class="exam-card">
             <div class="badge-container">
-              <span class="badge-outline" id="badge-tian">天</span>
-              <span class="badge-outline" id="badge-li">立</span>
+              <div class="badge-group">
+                <span class="badge-outline" id="badge-tian">天</span>
+                <span class="badge-outline" id="badge-li">立</span>
+              </div>
+              <span class="pool-counter" id="cnt-tianli">6/6</span>
             </div>
             <div class="result-display" id="res-tianli"></div>
             <div class="card-action-bar">
@@ -484,7 +489,10 @@
           <!-- Card 3: 透視 -->
           <div class="exam-card">
             <div class="badge-container">
-              <span class="badge">透視</span>
+              <div class="badge-group">
+                <span class="badge">透視</span>
+              </div>
+              <span class="pool-counter" id="cnt-toushi">18/18</span>
             </div>
             <div class="result-display" id="res-toushi"></div>
             <div class="card-action-bar">
@@ -495,7 +503,10 @@
           <!-- Card 4: 大樣 -->
           <div class="exam-card">
             <div class="badge-container">
-              <span class="badge">大樣</span>
+              <div class="badge-group">
+                <span class="badge">大樣</span>
+              </div>
+              <span class="pool-counter" id="cnt-dayang">12/12</span>
             </div>
             <div class="result-display" id="res-dayang"></div>
             <div class="card-action-bar">
@@ -505,7 +516,6 @@
         </div>
       </div>
 
-      <!-- Master Draw All Button -->
       <div class="master-draw-container">
         <button class="btn-master" onclick="drawAll()">
           <span>⚡ 全套一鍵抽題</span>
@@ -513,7 +523,7 @@
       </div>
     </div>
 
-    <!-- VIEW 2: HISTORY TAB (記錄) -->
+    <!-- VIEW 2: HISTORY TAB -->
     <div id="view-history" class="view-content">
       <div id="history-container" class="history-list">
         <!-- Rendered dynamically -->
@@ -523,33 +533,123 @@
       </div>
     </div>
 
-    <!-- Footer Information -->
     <div class="device-footer">
       <span>MODEL: EP-133 / FIELD</span>
       <span>MEM: LOCAL_STORAGE</span>
-      <span>REV: 2.1.0</span>
+      <span>REV: 2.2.0</span>
     </div>
   </div>
 
   <script>
-    /* Question Selection Pools */
-    const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-    const getRandomArr = (arr) => arr[Math.floor(Math.random() * arr.length)];
-
-    const GENERATORS = {
-      pingpei: () => ({ val: `${getRandomInt(201, 206)} ${getRandomArr(['A', 'B', 'C', 'D', 'E', 'F'])}` }),
-      tianli: () => {
-        const type = getRandomArr(['天', '立']);
-        const space = getRandomArr(['餐廳', '客廳', '主臥']);
-        return { val: space, subType: type };
+    const POOL_SPECS = {
+      pingpei: {
+        total: 36,
+        createAll: () => {
+          const items = [];
+          for (let n = 201; n <= 206; n++) {
+            ['A', 'B', 'C', 'D', 'E', 'F'].forEach(l => {
+              items.push({ val: `${n} ${l}` });
+            });
+          }
+          return items;
+        }
       },
-      toushi: () => ({ val: `${getRandomInt(207, 212)} ${getRandomArr(['甲', '乙', '丙'])}` }),
-      dayang: () => ({ val: `${getRandomInt(213, 224)}` })
+      tianli: {
+        total: 6,
+        createAll: () => {
+          const items = [];
+          ['天', '立'].forEach(mode => {
+            ['餐廳', '客廳', '主臥'].forEach(space => {
+              items.push({ val: space, subType: mode });
+            });
+          });
+          return items;
+        }
+      },
+      toushi: {
+        total: 18,
+        createAll: () => {
+          const items = [];
+          for (let n = 207; n <= 212; n++) {
+            ['甲', '乙', '丙'].forEach(l => {
+              items.push({ val: `${n} ${l}` });
+            });
+          }
+          return items;
+        }
+      },
+      dayang: {
+        total: 12,
+        createAll: () => {
+          const items = [];
+          for (let n = 213; n <= 224; n++) {
+            items.push({ val: `${n}` });
+          }
+          return items;
+        }
+      }
     };
 
-    const STORAGE_KEY = 'TE_EXAM_MOCK_HISTORY_V3';
+    const STORAGE_KEY_LOGS = 'TE_EXAM_MOCK_LOGS_V4';
+    const STORAGE_KEY_POOLS = 'TE_EXAM_MOCK_POOLS_V4';
 
-    /* Retro Web Audio API Synthesizer Sound FX */
+    let activePools = {};
+
+    function initPools() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_POOLS);
+        if (saved) {
+          activePools = JSON.parse(saved);
+        }
+      } catch (e) {
+        activePools = {};
+      }
+
+      Object.keys(POOL_SPECS).forEach(key => {
+        if (!activePools[key] || !Array.isArray(activePools[key]) || activePools[key].length === 0) {
+          activePools[key] = POOL_SPECS[key].createAll();
+        }
+      });
+      savePoolsState();
+      updateCountersUI();
+    }
+
+    function savePoolsState() {
+      try {
+        localStorage.setItem(STORAGE_KEY_POOLS, JSON.stringify(activePools));
+      } catch (e) {}
+    }
+
+    function updateCountersUI() {
+      Object.keys(POOL_SPECS).forEach(key => {
+        const el = document.getElementById(`cnt-${key}`);
+        if (el) {
+          const rem = activePools[key] ? activePools[key].length : 0;
+          const tot = POOL_SPECS[key].total;
+          el.innerText = `${rem}/${tot}`;
+        }
+      });
+    }
+
+    /* Pull a unique non-repeating item from remaining pool */
+    function popFromPool(type) {
+      if (!activePools[type] || activePools[type].length === 0) {
+        activePools[type] = POOL_SPECS[type].createAll();
+      }
+
+      const randomIndex = Math.floor(Math.random() * activePools[type].length);
+      const pickedItem = activePools[type].splice(randomIndex, 1)[0];
+
+      // Auto refill if empty for future draws
+      if (activePools[type].length === 0) {
+        activePools[type] = POOL_SPECS[type].createAll();
+      }
+
+      savePoolsState();
+      updateCountersUI();
+      return pickedItem;
+    }
+
     const playSynthSound = (freq = 440, type = 'sine', duration = 0.08) => {
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -568,7 +668,6 @@
       } catch (e) {}
     };
 
-    /* Tab Switcher */
     function switchTab(tab) {
       playSynthSound(600, 'triangle', 0.05);
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -584,7 +683,6 @@
       }
     }
 
-    /* Update Top Left Badge for "天/立" */
     function updateTianLiBadges(subType) {
       const bTian = document.getElementById('badge-tian');
       const bLi = document.getElementById('badge-li');
@@ -600,7 +698,6 @@
       }
     }
 
-    /* Single Category Drawer Logic */
     function drawSingle(type) {
       playSynthSound(300, 'sawtooth', 0.12);
       const el = document.getElementById(`res-${type}`);
@@ -608,7 +705,9 @@
 
       let counter = 0;
       const interval = setInterval(() => {
-        const temp = GENERATORS[type]();
+        // Shuffle effect with dummy samples
+        const dummy = POOL_SPECS[type].createAll();
+        const temp = dummy[Math.floor(Math.random() * dummy.length)];
         el.innerText = temp.val;
         if (type === 'tianli') updateTianLiBadges(temp.subType);
         
@@ -617,7 +716,7 @@
         
         if (counter > 8) {
           clearInterval(interval);
-          const finalResult = GENERATORS[type]();
+          const finalResult = popFromPool(type);
           el.innerText = finalResult.val;
           el.classList.remove('animating');
 
@@ -626,18 +725,17 @@
           saveRecordToHistory([{
             type: type,
             val: finalResult.val,
-            subType: finalResult.subType,
-            time: getFormattedTime()
+            subType: finalResult.subType || null,
+            ts: Date.now()
           }]);
         }
       }, 50);
     }
 
-    /* Master Draw All Logic */
     function drawAll() {
       playSynthSound(200, 'square', 0.2);
       const keys = ['pingpei', 'tianli', 'toushi', 'dayang'];
-      const timestamp = getFormattedTime();
+      const currentTs = Date.now();
       const newRecords = [];
 
       keys.forEach((type, idx) => {
@@ -646,14 +744,15 @@
           el.classList.add('animating');
           let counter = 0;
           const interval = setInterval(() => {
-            const temp = GENERATORS[type]();
+            const dummy = POOL_SPECS[type].createAll();
+            const temp = dummy[Math.floor(Math.random() * dummy.length)];
             el.innerText = temp.val;
             if (type === 'tianli') updateTianLiBadges(temp.subType);
             
             counter++;
             if (counter > 6) {
               clearInterval(interval);
-              const finalResult = GENERATORS[type]();
+              const finalResult = popFromPool(type);
               el.innerText = finalResult.val;
               el.classList.remove('animating');
 
@@ -662,8 +761,8 @@
               newRecords.push({
                 type: type,
                 val: finalResult.val,
-                subType: finalResult.subType,
-                time: timestamp
+                subType: finalResult.subType || null,
+                ts: currentTs + idx // slight offset for exact ordering
               });
 
               if (newRecords.length === 4) {
@@ -675,18 +774,9 @@
       });
     }
 
-    /* Get Date & Time Strings */
-    function getFormattedTime() {
-      const now = new Date();
-      const dateStr = `${now.getFullYear()} / ${String(now.getMonth() + 1).padStart(2, '0')} / ${String(now.getDate()).padStart(2, '0')}`;
-      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      return { date: dateStr, time: timeStr };
-    }
-
-    /* LocalStorage Handlers */
-    function getHistory() {
+    function getLogs() {
       try {
-        const data = localStorage.getItem(STORAGE_KEY);
+        const data = localStorage.getItem(STORAGE_KEY_LOGS);
         return data ? JSON.parse(data) : [];
       } catch (e) {
         return [];
@@ -694,56 +784,64 @@
     }
 
     function saveRecordToHistory(items) {
-      const history = getHistory();
-      const dateGroup = items[0].time.date;
-
-      let group = history.find(g => g.date === dateGroup);
-      if (!group) {
-        group = { date: dateGroup, items: [] };
-        history.unshift(group);
-      }
-
+      const logs = getLogs();
       items.forEach(item => {
-        group.items.unshift({
-          id: Date.now() + Math.random().toString(36).substr(2, 4),
+        logs.push({
+          id: item.ts + '_' + Math.random().toString(36).substr(2, 4),
           type: item.type,
           val: item.val,
           subType: item.subType || null,
-          time: item.time.time
+          ts: item.ts
         });
       });
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+      // Sort globally by timestamp descending
+      logs.sort((a, b) => b.ts - a.ts);
+
+      localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs));
     }
 
     function deleteHistoryItem(id) {
       playSynthSound(400, 'sine', 0.08);
-      let history = getHistory();
-      history.forEach(group => {
-        group.items = group.items.filter(item => item.id !== id);
-      });
-      history = history.filter(group => group.items.length > 0);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+      let logs = getLogs();
+      logs = logs.filter(item => item.id !== id);
+      localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs));
       renderHistory();
     }
 
     function clearAllHistory() {
       if (confirm('確定要清除所有抽題紀錄？')) {
         playSynthSound(150, 'sawtooth', 0.2);
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STORAGE_KEY_LOGS);
         renderHistory();
       }
     }
 
-    /* Render History Logs */
+    function formatTimeFromTs(ts) {
+      const d = new Date(ts);
+      const dateStr = `${d.getFullYear()} / ${String(d.getMonth() + 1).padStart(2, '0')} / ${String(d.getDate()).padStart(2, '0')}`;
+      const timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      return { date: dateStr, time: timeStr };
+    }
+
     function renderHistory() {
-      const history = getHistory();
+      const logs = getLogs();
       const container = document.getElementById('history-container');
 
-      if (!history || history.length === 0) {
+      if (!logs || logs.length === 0) {
         container.innerHTML = `<div class="empty-state">尚無抽題紀錄<br><span style="font-size:11px; opacity:0.7;">NO HISTORICAL DATA</span></div>`;
         return;
       }
+
+      // Group strictly sorted logs by Date string
+      const groupedMap = new Map();
+      logs.forEach(item => {
+        const { date, time } = formatTimeFromTs(item.ts);
+        if (!groupedMap.has(date)) {
+          groupedMap.set(date, []);
+        }
+        groupedMap.get(date).push({ ...item, timeStr: time });
+      });
 
       const typeLabels = {
         pingpei: '平配',
@@ -752,15 +850,15 @@
       };
 
       let html = '';
-      history.forEach(group => {
+      groupedMap.forEach((items, dateStr) => {
         html += `<div class="history-group">
           <div class="history-group-header">
-            <span>📅 ${group.date}</span>
+            <span>📅 ${dateStr}</span>
             <span style="font-size:10px; opacity:0.6;">LOG_GROUP</span>
           </div>
           <div class="cards-column">`;
 
-        group.items.forEach(item => {
+        items.forEach(item => {
           let badgeHTML = '';
           if (item.type === 'tianli') {
             const isTian = item.subType === '天';
@@ -772,8 +870,10 @@
           html += `
             <div class="exam-card">
               <div class="badge-container">
-                ${badgeHTML}
-                <span class="timestamp-inline">${item.time}</span>
+                <div class="badge-group">
+                  ${badgeHTML}
+                  <span class="timestamp-inline">${item.timeStr}</span>
+                </div>
               </div>
               <div class="result-display">${item.val}</div>
               <div class="card-action-bar">
@@ -787,6 +887,11 @@
 
       container.innerHTML = html;
     }
+
+    // Initialize pool state on load
+    window.onload = function() {
+      initPools();
+    };
   </script>
 </body>
 </html>
