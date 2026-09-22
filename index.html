@@ -211,12 +211,18 @@
       border-bottom: none;
     }
 
-    /* Category Badges */
+    /* Category Badges & Pool Counter Row */
     .badge-container {
       display: flex;
       align-items: center;
-      gap: 5px;
+      justify-content: space-between;
       height: 20px; /* Fixed height for top label row */
+    }
+
+    .badge-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
 
     .badge {
@@ -241,6 +247,13 @@
       border-radius: 2px;
       line-height: 1;
       display: inline-block;
+    }
+
+    .pool-counter {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--sub-text);
+      letter-spacing: 1px;
     }
 
     .timestamp-inline {
@@ -560,7 +573,10 @@
           <!-- Card 1: 平配 -->
           <div class="exam-card">
             <div class="badge-container">
-              <span class="badge">平配</span>
+              <div class="badge-group">
+                <span class="badge">平配</span>
+              </div>
+              <span class="pool-counter" id="cnt-pingpei">36/36</span>
             </div>
             <div class="result-display" id="res-pingpei"></div>
             <div class="card-action-bar">
@@ -571,8 +587,11 @@
           <!-- Card 2: 天 / 立 -->
           <div class="exam-card">
             <div class="badge-container">
-              <span class="badge-outline" id="badge-tian">天</span>
-              <span class="badge-outline" id="badge-li">立</span>
+              <div class="badge-group">
+                <span class="badge-outline" id="badge-tian">天</span>
+                <span class="badge-outline" id="badge-li">立</span>
+              </div>
+              <span class="pool-counter" id="cnt-tianli">6/6</span>
             </div>
             <div class="result-display" id="res-tianli"></div>
             <div class="card-action-bar">
@@ -583,7 +602,10 @@
           <!-- Card 3: 透視 -->
           <div class="exam-card">
             <div class="badge-container">
-              <span class="badge">透視</span>
+              <div class="badge-group">
+                <span class="badge">透視</span>
+              </div>
+              <span class="pool-counter" id="cnt-toushi">18/18</span>
             </div>
             <div class="result-display" id="res-toushi"></div>
             <div class="card-action-bar">
@@ -594,7 +616,10 @@
           <!-- Card 4: 大樣 -->
           <div class="exam-card">
             <div class="badge-container">
-              <span class="badge">大樣</span>
+              <div class="badge-group">
+                <span class="badge">大樣</span>
+              </div>
+              <span class="pool-counter" id="cnt-dayang">12/12</span>
             </div>
             <div class="result-display" id="res-dayang"></div>
             <div class="card-action-bar">
@@ -700,7 +725,7 @@
     const DRAWN_STATE_KEY = 'TE_EXAM_MOCK_DRAWN_POOLS';
     let currentSearchKeyword = '';
 
-    /* Non-Repeating Drawer Algorithm */
+    /* Non-Repeating Drawer Algorithm & Pool Counters */
     function getNextQuestion(type) {
       let drawnState = {};
       try {
@@ -728,7 +753,26 @@
       drawnState[type].push(randomIndex);
 
       localStorage.setItem(DRAWN_STATE_KEY, JSON.stringify(drawnState));
+      updatePoolCounters();
       return fullPool[randomIndex];
+    }
+
+    function updatePoolCounters() {
+      let drawnState = {};
+      try {
+        const s = localStorage.getItem(DRAWN_STATE_KEY);
+        if (s) drawnState = JSON.parse(s);
+      } catch (e) {}
+
+      Object.keys(CATEGORY_POOLS).forEach(type => {
+        const fullSize = CATEGORY_POOLS[type].length;
+        const drawnSize = (drawnState[type] || []).length;
+        const remaining = fullSize - drawnSize;
+        const el = document.getElementById(`cnt-${type}`);
+        if (el) {
+          el.innerText = `${remaining}/${fullSize}`;
+        }
+      });
     }
 
     /* Retro Web Audio API Sound FX */
@@ -759,6 +803,7 @@
       if (tab === 'draw') {
         document.querySelectorAll('.tab-btn')[0].classList.add('active');
         document.getElementById('view-draw').classList.add('active');
+        updatePoolCounters();
       } else {
         document.querySelectorAll('.tab-btn')[1].classList.add('active');
         document.getElementById('view-history').classList.add('active');
@@ -904,6 +949,7 @@
         playSynthSound(150, 'sawtooth', 0.2);
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(DRAWN_STATE_KEY);
+        updatePoolCounters();
         renderHistory();
       }
     }
@@ -996,8 +1042,10 @@
           html += `
             <div class="exam-card">
               <div class="badge-container">
-                ${badgeHTML}
-                <span class="timestamp-inline">${item.formattedTime}</span>
+                <div class="badge-group">
+                  ${badgeHTML}
+                  <span class="timestamp-inline">${item.formattedTime}</span>
+                </div>
               </div>
               <div class="result-display">${item.val}</div>
               <div class="card-action-bar">
@@ -1011,6 +1059,9 @@
 
       container.innerHTML = html;
     }
+
+    // Initialize counters on load
+    updatePoolCounters();
   </script>
 </body>
 </html>
