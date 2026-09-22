@@ -1,1 +1,564 @@
-test
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>室設乙模擬考抽題系統 - TE FIELD SYSTEM</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800;900&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'te-bg': '#E8E7E2',
+                        'te-card': '#F3F2EE',
+                        'te-orange': '#FF3B00',
+                        'te-dark': '#141414',
+                        'te-gray': '#858480',
+                        'te-light-gray': '#D6D5CF'
+                    },
+                    fontFamily: {
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                        sans: ['"Noto Sans TC"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #E8E7E2;
+            background-image: 
+                radial-gradient(#C2C1BB 1.2px, transparent 0),
+                linear-gradient(to right, rgba(0, 0, 0, 0.025) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 0, 0, 0.025) 1px, transparent 1px);
+            background-size: 16px 16px, 32px 32px, 32px 32px;
+            color: #141414;
+            font-family: 'JetBrains Mono', 'Noto Sans TC', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Diagonal corner slice matching TE wireframe draw buttons */
+        .diagonal-btn-draw {
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 52px) 100%, 0 100%);
+        }
+        
+        .diagonal-btn-delete {
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 18px), calc(100% - 44px) 100%, 0 100%);
+        }
+
+        /* Tactile button press effect */
+        .te-btn {
+            transition: all 0.06s ease;
+        }
+        .te-btn:active {
+            transform: translate(1px, 1px);
+        }
+
+        /* LED Indicator Glow */
+        .led-dot {
+            box-shadow: 0 0 6px rgba(255, 59, 0, 0.9);
+        }
+
+        /* Slot Machine Randomizing Animation */
+        .rolling {
+            animation: slotRoll 0.07s linear infinite;
+            filter: blur(1px);
+            opacity: 0.8;
+        }
+
+        @keyframes slotRoll {
+            0% { transform: translateY(-3px); }
+            50% { transform: translateY(3px); }
+            100% { transform: translateY(-3px); }
+        }
+
+        /* Retro Industrial Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #E8E7E2;
+            border-left: 2px solid #141414;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #141414;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-6">
+
+    <div class="w-full max-w-md bg-te-bg border-4 border-te-dark rounded-xl shadow-[8px_8px_0px_0px_rgba(20,20,20,1)] overflow-hidden flex flex-col relative">
+        
+        <!-- TE Hardware Top Status Plate -->
+        <div class="bg-te-bg border-b-4 border-te-dark px-3 py-2 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-3.5 h-3.5 rounded-full border-2 border-te-dark flex items-center justify-center bg-te-light-gray">
+                    <div class="w-2 h-[2px] bg-te-dark transform rotate-45"></div>
+                </div>
+                <span class="text-[11px] font-mono font-black tracking-wider uppercase text-te-dark">OP-ID2 // EXAM SYSTEM</span>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <span class="text-[9px] font-mono font-bold tracking-tight text-te-gray uppercase">ONLINE</span>
+                <div class="w-2.5 h-2.5 rounded-full bg-te-orange led-dot"></div>
+            </div>
+        </div>
+
+        <!-- Top Navigation Tabs (Wireframe: 抽題 / 記錄) -->
+        <div class="grid grid-cols-2 border-b-4 border-te-dark bg-te-dark">
+            <button id="tab-draw-btn" onclick="switchTab('draw')" class="py-2.5 text-center text-lg font-black tracking-wider transition-colors bg-te-dark text-white flex items-center justify-center gap-2 cursor-pointer">
+                <span id="draw-indicator" class="w-2.5 h-2.5 bg-te-orange rounded-full inline-block"></span>
+                抽題
+            </button>
+            <button id="tab-log-btn" onclick="switchTab('log')" class="py-2.5 text-center text-lg font-black tracking-wider transition-colors bg-te-bg text-te-dark hover:bg-te-light-gray border-l-4 border-te-dark flex items-center justify-center gap-2 cursor-pointer">
+                <span id="log-indicator" class="w-2.5 h-2.5 bg-te-gray rounded-full inline-block"></span>
+                記錄
+            </button>
+        </div>
+
+        <!-- TAB 1: 抽題 (DRAW VIEW) -->
+        <div id="view-draw" class="flex flex-1 divide-x-4 divide-te-dark bg-te-bg">
+            
+            <!-- Left Column: 上午 / 下午 Session Block (Divided 50% / 50% to align with right cards) -->
+            <div class="w-20 flex flex-col justify-between font-black text-te-dark select-none bg-te-bg">
+                <!-- Morning (上午) - Spans Card 1 (平配) & Card 2 (天/立) -->
+                <div class="flex-1 flex flex-col items-center justify-center border-b-4 border-te-dark relative">
+                    <span class="text-[9px] font-mono text-te-gray absolute top-2 left-2">AM</span>
+                    <span class="text-xl font-black tracking-widest my-auto">上午</span>
+                </div>
+                <!-- Afternoon (下午) - Spans Card 3 (透視) & Card 4 (大樣) -->
+                <div class="flex-1 flex flex-col items-center justify-center relative">
+                    <span class="text-[9px] font-mono text-te-gray absolute top-2 left-2">PM</span>
+                    <span class="text-xl font-black tracking-widest my-auto">下午</span>
+                </div>
+            </div>
+
+            <!-- Right Column: Question Cards Grid (Divided strictly into 4 equal cards) -->
+            <div class="flex-1 flex flex-col divide-y-4 divide-te-dark bg-te-bg">
+                
+                <!-- Card 0: 平配 (201~206 + A~F) -->
+                <div class="relative h-28 flex flex-col justify-between p-2.5 bg-te-card hover:bg-white transition-colors">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-te-dark text-white text-xs font-bold px-2 py-0.5 tracking-wider">平配</span>
+                        <span class="text-[9px] font-mono text-te-gray">201-206 A-F</span>
+                    </div>
+                    
+                    <div id="display-0" class="text-3xl font-black font-mono tracking-wider text-center my-auto text-te-dark pr-8">
+                        201 A
+                    </div>
+
+                    <!-- Diagonal Slash Cut Draw Button -->
+                    <button onclick="drawSingle(0)" class="absolute bottom-0 right-0 w-32 h-9 bg-te-bg border-t-2 border-l-2 border-te-dark diagonal-btn-draw flex items-end justify-end pr-2.5 pb-0.5 hover:bg-te-orange hover:text-white te-btn group cursor-pointer">
+                        <span class="text-xs font-black tracking-widest group-hover:translate-x-0.5 transition-transform">抽題</span>
+                    </button>
+                </div>
+
+                <!-- Card 1: 天 / 立 (天/立 + 餐廳, 客廳, 主臥) -->
+                <div class="relative h-28 flex flex-col justify-between p-2.5 bg-te-card hover:bg-white transition-colors">
+                    <div class="flex items-center gap-2">
+                        <div class="flex border border-te-dark font-bold text-xs">
+                            <span id="badge-ceiling-tian" class="px-1.5 py-0.5 bg-white text-te-dark border-r border-te-dark">天</span>
+                            <span id="badge-ceiling-li" class="px-1.5 py-0.5 bg-te-dark text-white">立</span>
+                        </div>
+                        <span class="text-[9px] font-mono text-te-gray">MODE // CEILING</span>
+                    </div>
+                    
+                    <div id="display-1" class="text-3xl font-black tracking-wide text-center my-auto text-te-dark pr-8">
+                        客廳
+                    </div>
+
+                    <!-- Diagonal Slash Cut Draw Button -->
+                    <button onclick="drawSingle(1)" class="absolute bottom-0 right-0 w-32 h-9 bg-te-bg border-t-2 border-l-2 border-te-dark diagonal-btn-draw flex items-end justify-end pr-2.5 pb-0.5 hover:bg-te-orange hover:text-white te-btn group cursor-pointer">
+                        <span class="text-xs font-black tracking-widest group-hover:translate-x-0.5 transition-transform">抽題</span>
+                    </button>
+                </div>
+
+                <!-- Card 2: 透視 (207~212 + 甲/乙/丙) -->
+                <div class="relative h-28 flex flex-col justify-between p-2.5 bg-te-card hover:bg-white transition-colors">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-te-dark text-white text-xs font-bold px-2 py-0.5 tracking-wider">透視</span>
+                        <span class="text-[9px] font-mono text-te-gray">207-212 甲-丙</span>
+                    </div>
+                    
+                    <div id="display-2" class="text-3xl font-black font-mono tracking-wider text-center my-auto text-te-dark pr-8">
+                        207 丙
+                    </div>
+
+                    <!-- Diagonal Slash Cut Draw Button -->
+                    <button onclick="drawSingle(2)" class="absolute bottom-0 right-0 w-32 h-9 bg-te-bg border-t-2 border-l-2 border-te-dark diagonal-btn-draw flex items-end justify-end pr-2.5 pb-0.5 hover:bg-te-orange hover:text-white te-btn group cursor-pointer">
+                        <span class="text-xs font-black tracking-widest group-hover:translate-x-0.5 transition-transform">抽題</span>
+                    </button>
+                </div>
+
+                <!-- Card 3: 大樣 (213~224) -->
+                <div class="relative h-28 flex flex-col justify-between p-2.5 bg-te-card hover:bg-white transition-colors">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-te-dark text-white text-xs font-bold px-2 py-0.5 tracking-wider">大樣</span>
+                        <span class="text-[9px] font-mono text-te-gray">213-224</span>
+                    </div>
+                    
+                    <div id="display-3" class="text-3xl font-black font-mono tracking-wider text-center my-auto text-te-dark pr-8">
+                        213
+                    </div>
+
+                    <!-- Diagonal Slash Cut Draw Button -->
+                    <button onclick="drawSingle(3)" class="absolute bottom-0 right-0 w-32 h-9 bg-te-bg border-t-2 border-l-2 border-te-dark diagonal-btn-draw flex items-end justify-end pr-2.5 pb-0.5 hover:bg-te-orange hover:text-white te-btn group cursor-pointer">
+                        <span class="text-xs font-black tracking-widest group-hover:translate-x-0.5 transition-transform">抽題</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TAB 2: 記錄 (HISTORY LOGS VIEW) -->
+        <div id="view-log" class="hidden min-h-[456px] flex flex-col bg-te-bg relative">
+            <!-- Log Container with Custom Scrollbar -->
+            <div id="history-container" class="flex-1 overflow-y-auto p-3 space-y-4 max-h-[456px]">
+                <!-- Dynamically populated via JavaScript -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden flex-1 flex flex-col items-center justify-center p-8 text-center text-te-gray my-auto">
+                <div class="w-10 h-10 border-2 border-dashed border-te-gray rounded-full flex items-center justify-center mb-2">
+                    <span class="font-mono text-lg font-bold">Ø</span>
+                </div>
+                <p class="font-mono text-xs font-bold text-te-dark">無抽題歷史紀錄</p>
+                <p class="text-[11px] mt-0.5 text-te-gray">請至「抽題」頁面進行抽取</p>
+            </div>
+
+            <!-- Bottom Log Control Bar -->
+            <div class="border-t-4 border-te-dark p-2 bg-te-bg flex justify-between items-center">
+                <span id="log-count" class="text-[11px] font-mono font-black text-te-dark pl-1">LOGS: 0</span>
+                <button onclick="clearAllLogs()" class="bg-te-dark hover:bg-te-orange text-white text-xs font-bold px-3 py-1.5 transition-colors te-btn cursor-pointer">
+                    清除紀錄
+                </button>
+            </div>
+        </div>
+
+        <!-- Master Control Bottom Plate -->
+        <div class="border-t-4 border-te-dark bg-te-bg p-3 flex items-center justify-between">
+            <div class="text-[9px] font-mono text-te-gray leading-tight">
+                <div class="font-bold text-te-dark">TE FIELD SYSTEM</div>
+                <div>CLASS B MOCK EXAM</div>
+            </div>
+            
+            <button onclick="drawAll()" class="bg-te-orange border-2 border-te-dark text-white font-black text-xs sm:text-sm px-4 py-2 shadow-[3px_3px_0px_0px_rgba(20,20,20,1)] hover:bg-black transition-all te-btn flex items-center gap-1.5 cursor-pointer">
+                <span>全套一鍵抽題</span>
+                <span class="text-xs">⚡</span>
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Specific Exam Options Pools according to exact rules
+        const pools = [
+            // 0: 平配 (201 ~ 206 + A ~ F)
+            {
+                type: '平配',
+                badgeStyle: 'bg-te-dark text-white',
+                generate: () => {
+                    const num = 201 + Math.floor(Math.random() * 6); // 201 to 206
+                    const letter = String.fromCharCode(65 + Math.floor(Math.random() * 6)); // A to F
+                    return `${num} ${letter}`;
+                }
+            },
+            // 1: 天/立 (天 or 立 + 餐廳, 客廳, 主臥)
+            {
+                type: '天/立',
+                badgeStyle: 'custom-ceiling',
+                generate: () => {
+                    const room = ['餐廳', '客廳', '主臥'][Math.floor(Math.random() * 3)];
+                    const mode = Math.random() < 0.5 ? '天' : '立';
+                    return { display: `${room}`, fullText: `${mode} ${room}`, mode: mode };
+                }
+            },
+            // 2: 透視 (207 ~ 212 + 甲, 乙, 丙)
+            {
+                type: '透視',
+                badgeStyle: 'bg-te-dark text-white',
+                generate: () => {
+                    const num = 207 + Math.floor(Math.random() * 6); // 207 to 212
+                    const greek = ['甲', '乙', '丙'][Math.floor(Math.random() * 3)];
+                    return `${num} ${greek}`;
+                }
+            },
+            // 3: 大樣 (213 ~ 224)
+            {
+                type: '大樣',
+                badgeStyle: 'bg-te-dark text-white',
+                generate: () => {
+                    const num = 213 + Math.floor(Math.random() * 12); // 213 to 224
+                    return `${num}`;
+                }
+            }
+        ];
+
+        // State Management
+        let currentDraws = ['201 A', '客廳', '207 丙', '213'];
+        let logs = JSON.parse(localStorage.getItem('te_exam_picker_logs') || '[]');
+
+        // Synthesizer Audio Effects using Web Audio API
+        function playSound(freq = 800, duration = 0.04, type = 'sine') {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.06, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        // Switch View Tabs
+        function switchTab(tab) {
+            playSound(700, 0.03);
+            const drawView = document.getElementById('view-draw');
+            const logView = document.getElementById('view-log');
+            const drawBtn = document.getElementById('tab-draw-btn');
+            const logBtn = document.getElementById('tab-log-btn');
+            const drawIndicator = document.getElementById('draw-indicator');
+            const logIndicator = document.getElementById('log-indicator');
+
+            if (tab === 'draw') {
+                drawView.classList.remove('hidden');
+                drawView.classList.add('flex');
+                logView.classList.add('hidden');
+                drawBtn.className = "py-2.5 text-center text-lg font-black tracking-wider transition-colors bg-te-dark text-white flex items-center justify-center gap-2 cursor-pointer";
+                logBtn.className = "py-2.5 text-center text-lg font-black tracking-wider transition-colors bg-te-bg text-te-dark hover:bg-te-light-gray border-l-4 border-te-dark flex items-center justify-center gap-2 cursor-pointer";
+                drawIndicator.className = "w-2.5 h-2.5 bg-te-orange rounded-full inline-block";
+                updateLogIndicator();
+            } else {
+                drawView.classList.add('hidden');
+                drawView.classList.remove('flex');
+                logView.classList.remove('hidden');
+                logBtn.className = "py-2.5 text-center text-lg font-black tracking-wider transition-colors bg-te-dark text-white border-l-4 border-te-dark flex items-center justify-center gap-2 cursor-pointer";
+                drawBtn.className = "py-2.5 text-center text-lg font-black tracking-wider transition-colors bg-te-bg text-te-dark hover:bg-te-light-gray flex items-center justify-center gap-2 cursor-pointer";
+                drawIndicator.className = "w-2.5 h-2.5 bg-te-gray rounded-full inline-block";
+                logIndicator.className = "w-2.5 h-2.5 bg-te-orange rounded-full inline-block";
+                renderLogs();
+            }
+        }
+
+        // Draw Single Category
+        function drawSingle(index, record = true) {
+            playSound(1100, 0.04, 'square');
+            const element = document.getElementById(`display-${index}`);
+            element.classList.add('rolling');
+
+            let steps = 0;
+            const interval = setInterval(() => {
+                const res = pools[index].generate();
+                element.innerText = (typeof res === 'object') ? res.display : res;
+                
+                // Toggle badge highlight visually for 天/立 during shuffle
+                if (index === 1 && typeof res === 'object') {
+                    updateCeilingBadge(res.mode);
+                }
+
+                steps++;
+                playSound(350 + steps * 35, 0.02, 'triangle');
+
+                if (steps > 9) {
+                    clearInterval(interval);
+                    element.classList.remove('rolling');
+                    const finalRes = pools[index].generate();
+                    
+                    let finalVal = '';
+                    if (typeof finalRes === 'object') {
+                        element.innerText = finalRes.display;
+                        finalVal = finalRes.display;
+                        updateCeilingBadge(finalRes.mode);
+                    } else {
+                        element.innerText = finalRes;
+                        finalVal = finalRes;
+                    }
+
+                    currentDraws[index] = finalVal;
+                    playSound(900, 0.07, 'sine');
+
+                    if (record) {
+                        saveLogEntry(index, finalVal);
+                    }
+                }
+            }, 50);
+        }
+
+        // Update Ceiling Badge ("天" vs "立")
+        function updateCeilingBadge(activeMode) {
+            const tian = document.getElementById('badge-ceiling-tian');
+            const li = document.getElementById('badge-ceiling-li');
+            if (activeMode === '天') {
+                tian.className = "px-1.5 py-0.5 bg-te-dark text-white border-r border-te-dark";
+                li.className = "px-1.5 py-0.5 bg-white text-te-dark";
+            } else {
+                tian.className = "px-1.5 py-0.5 bg-white text-te-dark border-r border-te-dark";
+                li.className = "px-1.5 py-0.5 bg-te-dark text-white";
+            }
+        }
+
+        // Draw All Categories sequentially
+        function drawAll() {
+            playSound(1400, 0.08, 'sawtooth');
+            for (let i = 0; i < 4; i++) {
+                setTimeout(() => {
+                    drawSingle(i, true);
+                }, i * 110);
+            }
+        }
+
+        // Save entry into localStorage
+        function saveLogEntry(poolIndex, value) {
+            const now = new Date();
+            const dateStr = `${now.getFullYear()} / ${String(now.getMonth() + 1).padStart(2, '0')} / ${String(now.getDate()).padStart(2, '0')}`;
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            const entry = {
+                id: Date.now() + Math.random().toString(36).substr(2, 4),
+                date: dateStr,
+                time: timeStr,
+                categoryIndex: poolIndex,
+                categoryName: pools[poolIndex].type,
+                value: value
+            };
+
+            logs.unshift(entry);
+            localStorage.setItem('te_exam_picker_logs', JSON.stringify(logs));
+            updateLogIndicator();
+        }
+
+        // Delete Log Item
+        function deleteLog(id) {
+            playSound(300, 0.05, 'sawtooth');
+            logs = logs.filter(item => item.id !== id);
+            localStorage.setItem('te_exam_picker_logs', JSON.stringify(logs));
+            renderLogs();
+            updateLogIndicator();
+        }
+
+        // Clear All Logs
+        function clearAllLogs() {
+            if (logs.length === 0) return;
+            playSound(250, 0.08, 'sawtooth');
+            logs = [];
+            localStorage.setItem('te_exam_picker_logs', JSON.stringify(logs));
+            renderLogs();
+            updateLogIndicator();
+        }
+
+        // Update Log Indicator Dot
+        function updateLogIndicator() {
+            const indicator = document.getElementById('log-indicator');
+            const isLogViewActive = !document.getElementById('view-log').classList.contains('hidden');
+
+            if (isLogViewActive) {
+                indicator.className = "w-2.5 h-2.5 bg-te-orange rounded-full inline-block";
+            } else if (logs.length > 0) {
+                indicator.className = "w-2.5 h-2.5 bg-te-orange rounded-full inline-block animate-pulse";
+            } else {
+                indicator.className = "w-2.5 h-2.5 bg-te-gray rounded-full inline-block";
+            }
+        }
+
+        // Render Logs View Grouped by Date (Strict Wireframe 2 Style)
+        function renderLogs() {
+            const container = document.getElementById('history-container');
+            const emptyState = document.getElementById('empty-state');
+            const countText = document.getElementById('log-count');
+
+            countText.innerText = `LOGS: ${logs.length}`;
+
+            if (logs.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            emptyState.classList.remove('flex');
+
+            // Group by Date
+            const grouped = {};
+            logs.forEach(log => {
+                if (!grouped[log.date]) grouped[log.date] = [];
+                grouped[log.date].push(log);
+            });
+
+            let html = '';
+
+            for (const [date, items] of Object.entries(grouped)) {
+                html += `
+                    <div class="border-2 border-te-dark bg-white shadow-[3px_3px_0px_0px_rgba(20,20,20,1)] overflow-hidden">
+                        <!-- Date Header Block (Wireframe 2) -->
+                        <div class="bg-te-bg border-b-2 border-te-dark px-3 py-1 font-mono text-xs font-black text-te-dark flex justify-between items-center">
+                            <span>${date}</span>
+                            <span class="text-[9px] text-te-gray">RECORD GROUP</span>
+                        </div>
+                        
+                        <!-- Items under Date -->
+                        <div class="divide-y-2 divide-te-dark">
+                `;
+
+                items.forEach(item => {
+                    let badgeHtml = '';
+                    if (item.categoryIndex === 1) {
+                        badgeHtml = `
+                            <div class="flex border border-te-dark font-bold text-xs">
+                                <span class="px-1.5 py-0.5 bg-white text-te-dark border-r border-te-dark">天</span>
+                                <span class="px-1.5 py-0.5 bg-te-dark text-white">立</span>
+                            </div>
+                        `;
+                    } else {
+                        badgeHtml = `<span class="bg-te-dark text-white text-xs font-bold px-2 py-0.5 tracking-wider">${item.categoryName}</span>`;
+                    }
+
+                    html += `
+                        <div class="relative h-16 flex items-center justify-between p-2.5 bg-white hover:bg-te-card transition-colors">
+                            <div class="flex items-center gap-2.5">
+                                ${badgeHtml}
+                                <span class="font-mono text-[11px] font-bold text-te-gray">${item.time}</span>
+                            </div>
+
+                            <div class="text-xl sm:text-2xl font-black font-mono text-te-dark tracking-wide pr-16">
+                                ${item.value}
+                            </div>
+
+                            <!-- Diagonal Cut Delete Button (Wireframe 2: 刪除) -->
+                            <button onclick="deleteLog('${item.id}')" class="absolute bottom-0 right-0 w-24 h-7 bg-te-bg border-t-2 border-l-2 border-te-dark diagonal-btn-delete flex items-end justify-end pr-2 pb-0.5 hover:bg-te-dark hover:text-white te-btn group cursor-pointer">
+                                <span class="text-[10px] font-black tracking-widest group-hover:translate-x-0.5 transition-transform">刪除</span>
+                            </button>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Init on page load
+        window.onload = function() {
+            updateLogIndicator();
+        };
+    </script>
+</body>
+</html>
