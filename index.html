@@ -15,7 +15,6 @@
       --border-color: #111111;
       --text-color: #111111;
       --accent-orange: #FF3B00;
-      --accent-green: #00D154;
       --sub-text: #666660;
       --border-width: 2px;
     }
@@ -42,7 +41,7 @@
       padding: 20px;
     }
 
-    /* Outer TE Device Frame */
+    /* TE Outer Frame */
     .te-device {
       width: 100%;
       max-width: 520px;
@@ -57,7 +56,7 @@
       position: relative;
     }
 
-    /* Screws on device corners */
+    /* Metal Corner Screws */
     .screw {
       width: 10px;
       height: 10px;
@@ -81,7 +80,7 @@
     .screw.bl { bottom: 8px; left: 8px; }
     .screw.br { bottom: 8px; right: 8px; }
 
-    /* Header Bar */
+    /* Header Status Bar */
     .device-header {
       display: flex;
       justify-content: space-between;
@@ -157,7 +156,7 @@
       display: block;
     }
 
-    /* Draw Matrix Container (2 Column Main Grid) */
+    /* Main Grid Layout */
     .draw-grid {
       display: grid;
       grid-template-columns: 68px 1fr;
@@ -165,7 +164,7 @@
       background: var(--card-bg);
     }
 
-    /* Left Side: Morning / Afternoon Labels */
+    /* Left Side: Time Column */
     .time-column {
       display: flex;
       flex-direction: column;
@@ -189,17 +188,18 @@
       border-bottom: var(--border-width) solid var(--border-color);
     }
 
-    /* Right Side: 4 Exam Cards Container */
+    /* Right Side Cards Column */
     .cards-column {
       display: flex;
       flex-direction: column;
     }
 
-    /* Individual Card Box */
+    /* Card Item (Strictly Fixed Dimensions) */
     .exam-card {
       position: relative;
-      padding: 12px 14px 10px 14px;
-      min-height: 105px;
+      padding: 10px 14px 8px 14px;
+      height: 110px; /* Fixed card height */
+      box-sizing: border-box;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -207,16 +207,16 @@
       background: #FFFFFF;
     }
 
-    /* Horizontal Line Alignment Fix: 2nd & 4th cards handled */
     .exam-card:last-child {
       border-bottom: none;
     }
 
-    /* Badge Tag (e.g., 平配, 天 立, 透視, 大樣) */
+    /* Category Badges */
     .badge-container {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
+      height: 20px; /* Fixed height for top label row */
     }
 
     .badge {
@@ -224,10 +224,11 @@
       color: #FFFFFF;
       font-size: 12px;
       font-weight: 800;
-      padding: 3px 7px;
+      padding: 2px 6px;
       border-radius: 2px;
       line-height: 1;
       display: inline-block;
+      border: 1.5px solid var(--border-color);
     }
 
     .badge-outline {
@@ -249,29 +250,31 @@
       margin-left: 6px;
     }
 
-    /* Main Result Display Text */
+    /* Result Display Area (Fixed Height to Prevent Layout Shift) */
     .result-display {
-      font-size: 38px;
+      font-size: 36px;
       font-weight: 900;
       text-align: center;
       letter-spacing: 3px;
-      margin: 4px 0;
-      min-height: 50px;
+      height: 52px; /* Fixed result display height */
+      line-height: 52px;
       display: flex;
       align-items: center;
       justify-content: center;
       color: var(--text-color);
+      overflow: hidden;
+      white-space: nowrap;
     }
 
     .result-display.animating {
       color: var(--accent-orange);
     }
 
-    /* Modern Compact Button (Without Triangle Cut/Block) */
+    /* Compact Rectangular Action Buttons */
     .card-action-bar {
       display: flex;
       justify-content: flex-end;
-      margin-top: 2px;
+      height: 22px; /* Fixed bottom button row height */
     }
 
     .btn-action-compact {
@@ -281,14 +284,13 @@
       font-family: inherit;
       font-size: 12px;
       font-weight: 800;
-      padding: 3px 12px;
+      padding: 2px 12px;
       border-radius: 3px;
       cursor: pointer;
       transition: all 0.1s ease;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
     }
 
     .btn-action-compact:hover {
@@ -306,7 +308,7 @@
       color: #FFFFFF;
     }
 
-    /* Global Draw All Master Button */
+    /* Master Draw All Button */
     .master-draw-container {
       margin-top: 16px;
     }
@@ -339,7 +341,7 @@
       box-shadow: 0 1px 0 var(--border-color);
     }
 
-    /* Record / History View Styling */
+    /* History Log List View */
     .history-list {
       display: flex;
       flex-direction: column;
@@ -349,7 +351,6 @@
       padding-right: 4px;
     }
 
-    /* Custom Scrollbar */
     .history-list::-webkit-scrollbar {
       width: 6px;
     }
@@ -425,13 +426,13 @@
 <body>
 
   <div class="te-device">
-    <!-- Industrial Screws -->
+    <!-- TE Industrial Metal Screws -->
     <div class="screw tl"></div>
     <div class="screw tr"></div>
     <div class="screw bl"></div>
     <div class="screw br"></div>
 
-    <!-- Top Status Header -->
+    <!-- Header Status Bar -->
     <div class="device-header">
       <div class="brand-tag">
         <div class="status-led"></div>
@@ -449,20 +450,20 @@
     <!-- VIEW 1: DRAW TAB (抽題) -->
     <div id="view-draw" class="view-content active">
       <div class="draw-grid">
-        <!-- Left Time Indicator Column -->
+        <!-- Left Time Column -->
         <div class="time-column">
           <div class="time-block morning">上午</div>
           <div class="time-block afternoon">下午</div>
         </div>
 
-        <!-- Right 4 Card Items Column -->
+        <!-- Right 4 Exam Category Cards -->
         <div class="cards-column">
           <!-- Card 1: 平配 -->
           <div class="exam-card">
             <div class="badge-container">
               <span class="badge">平配</span>
             </div>
-            <div class="result-display" id="res-pingpei">201 A</div>
+            <div class="result-display" id="res-pingpei"></div>
             <div class="card-action-bar">
               <button class="btn-action-compact" onclick="drawSingle('pingpei')">抽題</button>
             </div>
@@ -471,10 +472,10 @@
           <!-- Card 2: 天 / 立 -->
           <div class="exam-card">
             <div class="badge-container">
-              <span class="badge-outline">天</span>
-              <span class="badge">立</span>
+              <span class="badge-outline" id="badge-tian">天</span>
+              <span class="badge-outline" id="badge-li">立</span>
             </div>
-            <div class="result-display" id="res-tianli">客廳</div>
+            <div class="result-display" id="res-tianli"></div>
             <div class="card-action-bar">
               <button class="btn-action-compact" onclick="drawSingle('tianli')">抽題</button>
             </div>
@@ -485,7 +486,7 @@
             <div class="badge-container">
               <span class="badge">透視</span>
             </div>
-            <div class="result-display" id="res-toushi">207 丙</div>
+            <div class="result-display" id="res-toushi"></div>
             <div class="card-action-bar">
               <button class="btn-action-compact" onclick="drawSingle('toushi')">抽題</button>
             </div>
@@ -496,7 +497,7 @@
             <div class="badge-container">
               <span class="badge">大樣</span>
             </div>
-            <div class="result-display" id="res-dayang">213</div>
+            <div class="result-display" id="res-dayang"></div>
             <div class="card-action-bar">
               <button class="btn-action-compact" onclick="drawSingle('dayang')">抽題</button>
             </div>
@@ -504,7 +505,7 @@
         </div>
       </div>
 
-      <!-- Master Roll Button -->
+      <!-- Master Draw All Button -->
       <div class="master-draw-container">
         <button class="btn-master" onclick="drawAll()">
           <span>⚡ 全套一鍵抽題</span>
@@ -515,44 +516,40 @@
     <!-- VIEW 2: HISTORY TAB (記錄) -->
     <div id="view-history" class="view-content">
       <div id="history-container" class="history-list">
-        <!-- Rendered dynamically via JavaScript -->
+        <!-- Rendered dynamically -->
       </div>
       <div class="clear-history-container">
         <button class="btn-secondary" onclick="clearAllHistory()">清除全部紀錄</button>
       </div>
     </div>
 
-    <!-- Bottom Specs Footer -->
+    <!-- Footer Information -->
     <div class="device-footer">
-      <span>MODEL: EP-133 / STYLE</span>
+      <span>MODEL: EP-133 / FIELD</span>
       <span>MEM: LOCAL_STORAGE</span>
-      <span>REV: 2.0.4</span>
+      <span>REV: 2.1.0</span>
     </div>
   </div>
 
   <script>
-    /* Question Generator Logic */
+    /* Question Selection Pools */
     const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
     const getRandomArr = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
     const GENERATORS = {
-      pingpei: () => `${getRandomInt(201, 206)} ${getRandomArr(['A', 'B', 'C', 'D', 'E', 'F'])}`,
-      tianli: () => `${getRandomArr(['天', '立'])} ${getRandomArr(['餐廳', '客廳', '主臥'])}`,
-      toushi: () => `${getRandomInt(207, 212)} ${getRandomArr(['甲', '乙', '丙'])}`,
-      dayang: () => `${getRandomInt(213, 224)}`
+      pingpei: () => ({ val: `${getRandomInt(201, 206)} ${getRandomArr(['A', 'B', 'C', 'D', 'E', 'F'])}` }),
+      tianli: () => {
+        const type = getRandomArr(['天', '立']);
+        const space = getRandomArr(['餐廳', '客廳', '主臥']);
+        return { val: space, subType: type };
+      },
+      toushi: () => ({ val: `${getRandomInt(207, 212)} ${getRandomArr(['甲', '乙', '丙'])}` }),
+      dayang: () => ({ val: `${getRandomInt(213, 224)}` })
     };
 
-    /* State Management */
-    let currentResults = {
-      pingpei: '201 A',
-      tianli: '客廳',
-      toushi: '207 丙',
-      dayang: '213'
-    };
+    const STORAGE_KEY = 'TE_EXAM_MOCK_HISTORY_V3';
 
-    const STORAGE_KEY = 'TE_EXAM_MOCK_HISTORY_V2';
-
-    /* Web Audio API Synthesizer Sound Effects */
+    /* Retro Web Audio API Synthesizer Sound FX */
     const playSynthSound = (freq = 440, type = 'sine', duration = 0.08) => {
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -587,7 +584,23 @@
       }
     }
 
-    /* Single Question Drawer Animation */
+    /* Update Top Left Badge for "天/立" */
+    function updateTianLiBadges(subType) {
+      const bTian = document.getElementById('badge-tian');
+      const bLi = document.getElementById('badge-li');
+      if (subType === '天') {
+        bTian.className = 'badge';
+        bLi.className = 'badge-outline';
+      } else if (subType === '立') {
+        bTian.className = 'badge-outline';
+        bLi.className = 'badge';
+      } else {
+        bTian.className = 'badge-outline';
+        bLi.className = 'badge-outline';
+      }
+    }
+
+    /* Single Category Drawer Logic */
     function drawSingle(type) {
       playSynthSound(300, 'sawtooth', 0.12);
       const el = document.getElementById(`res-${type}`);
@@ -595,26 +608,32 @@
 
       let counter = 0;
       const interval = setInterval(() => {
-        el.innerText = GENERATORS[type]();
+        const temp = GENERATORS[type]();
+        el.innerText = temp.val;
+        if (type === 'tianli') updateTianLiBadges(temp.subType);
+        
         playSynthSound(800 + counter * 50, 'square', 0.03);
         counter++;
+        
         if (counter > 8) {
           clearInterval(interval);
-          const finalVal = GENERATORS[type]();
-          el.innerText = finalVal;
+          const finalResult = GENERATORS[type]();
+          el.innerText = finalResult.val;
           el.classList.remove('animating');
-          currentResults[type] = finalVal;
-          
+
+          if (type === 'tianli') updateTianLiBadges(finalResult.subType);
+
           saveRecordToHistory([{
             type: type,
-            val: finalVal,
+            val: finalResult.val,
+            subType: finalResult.subType,
             time: getFormattedTime()
           }]);
         }
       }, 50);
     }
 
-    /* Master Draw All Questions */
+    /* Master Draw All Logic */
     function drawAll() {
       playSynthSound(200, 'square', 0.2);
       const keys = ['pingpei', 'tianli', 'toushi', 'dayang'];
@@ -627,18 +646,23 @@
           el.classList.add('animating');
           let counter = 0;
           const interval = setInterval(() => {
-            el.innerText = GENERATORS[type]();
+            const temp = GENERATORS[type]();
+            el.innerText = temp.val;
+            if (type === 'tianli') updateTianLiBadges(temp.subType);
+            
             counter++;
             if (counter > 6) {
               clearInterval(interval);
-              const finalVal = GENERATORS[type]();
-              el.innerText = finalVal;
+              const finalResult = GENERATORS[type]();
+              el.innerText = finalResult.val;
               el.classList.remove('animating');
-              currentResults[type] = finalVal;
-              
+
+              if (type === 'tianli') updateTianLiBadges(finalResult.subType);
+
               newRecords.push({
                 type: type,
-                val: finalVal,
+                val: finalResult.val,
+                subType: finalResult.subType,
                 time: timestamp
               });
 
@@ -651,7 +675,7 @@
       });
     }
 
-    /* Time formatting YYYY/MM/DD and HH:mm */
+    /* Get Date & Time Strings */
     function getFormattedTime() {
       const now = new Date();
       const dateStr = `${now.getFullYear()} / ${String(now.getMonth() + 1).padStart(2, '0')} / ${String(now.getDate()).padStart(2, '0')}`;
@@ -659,7 +683,7 @@
       return { date: dateStr, time: timeStr };
     }
 
-    /* LocalStorage History Handlers */
+    /* LocalStorage Handlers */
     function getHistory() {
       try {
         const data = localStorage.getItem(STORAGE_KEY);
@@ -684,6 +708,7 @@
           id: Date.now() + Math.random().toString(36).substr(2, 4),
           type: item.type,
           val: item.val,
+          subType: item.subType || null,
           time: item.time.time
         });
       });
@@ -710,7 +735,7 @@
       }
     }
 
-    /* Render History View */
+    /* Render History Logs */
     function renderHistory() {
       const history = getHistory();
       const container = document.getElementById('history-container');
@@ -721,10 +746,9 @@
       }
 
       const typeLabels = {
-        pingpei: { title: '平配', outline: false },
-        tianli: { title: '天 立', outline: true },
-        toushi: { title: '透視', outline: false },
-        dayang: { title: '大樣', outline: false }
+        pingpei: '平配',
+        toushi: '透視',
+        dayang: '大樣'
       };
 
       let html = '';
@@ -737,17 +761,21 @@
           <div class="cards-column">`;
 
         group.items.forEach(item => {
-          const badgeClass = item.type === 'tianli' 
-            ? `<span class="badge-outline">天</span><span class="badge">立</span>` 
-            : `<span class="badge">${typeLabels[item.type].title}</span>`;
+          let badgeHTML = '';
+          if (item.type === 'tianli') {
+            const isTian = item.subType === '天';
+            badgeHTML = `<span class="${isTian ? 'badge' : 'badge-outline'}">天</span><span class="${!isTian ? 'badge' : 'badge-outline'}">立</span>`;
+          } else {
+            badgeHTML = `<span class="badge">${typeLabels[item.type]}</span>`;
+          }
 
           html += `
-            <div class="exam-card" style="min-height:90px;">
+            <div class="exam-card">
               <div class="badge-container">
-                ${badgeClass}
+                ${badgeHTML}
                 <span class="timestamp-inline">${item.time}</span>
               </div>
-              <div class="result-display" style="font-size: 28px; min-height:36px;">${item.val}</div>
+              <div class="result-display">${item.val}</div>
               <div class="card-action-bar">
                 <button class="btn-action-compact delete" onclick="deleteHistoryItem('${item.id}')">刪除</button>
               </div>
