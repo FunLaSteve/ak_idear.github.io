@@ -660,7 +660,7 @@
     <div class="device-footer">
       <span>MODEL: EP-133 / FIELD</span>
       <span>MEM: LOCAL_STORAGE</span>
-      <span>REV: 2.2.0</span>
+      <span>REV: 2.2.1</span>
     </div>
   </div>
 
@@ -722,65 +722,25 @@
     };
 
     const STORAGE_KEY = 'TE_EXAM_MOCK_HISTORY_V4';
-    const DRAWN_STATE_KEY = 'TE_EXAM_MOCK_DRAWN_POOLS';
     let currentSearchKeyword = '';
 
-    /* Non-Repeating Drawer Algorithm & Pool Counters */
-    function getNextQuestion(type) {
-      let drawnState = {};
-      try {
-        const s = localStorage.getItem(DRAWN_STATE_KEY);
-        if (s) drawnState = JSON.parse(s);
-      } catch (e) {}
-
-      if (!drawnState[type]) drawnState[type] = [];
-
-      const fullPool = CATEGORY_POOLS[type];
-      let availableIndices = [];
-      for (let i = 0; i < fullPool.length; i++) {
-        if (!drawnState[type].includes(i)) {
-          availableIndices.push(i);
-        }
+    /* Global Audio Context Singleton for Reliable Sound FX */
+    let globalAudioCtx = null;
+    function getAudioContext() {
+      if (!globalAudioCtx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) globalAudioCtx = new AudioCtx();
       }
-
-      // If all items drawn, reset pool
-      if (availableIndices.length === 0) {
-        drawnState[type] = [];
-        for (let i = 0; i < fullPool.length; i++) availableIndices.push(i);
+      if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+        globalAudioCtx.resume();
       }
-
-      const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-      drawnState[type].push(randomIndex);
-
-      localStorage.setItem(DRAWN_STATE_KEY, JSON.stringify(drawnState));
-      updatePoolCounters();
-      return fullPool[randomIndex];
+      return globalAudioCtx;
     }
 
-    function updatePoolCounters() {
-      let drawnState = {};
-      try {
-        const s = localStorage.getItem(DRAWN_STATE_KEY);
-        if (s) drawnState = JSON.parse(s);
-      } catch (e) {}
-
-      Object.keys(CATEGORY_POOLS).forEach(type => {
-        const fullSize = CATEGORY_POOLS[type].length;
-        const drawnSize = (drawnState[type] || []).length;
-        const remaining = fullSize - drawnSize;
-        const el = document.getElementById(`cnt-${type}`);
-        if (el) {
-          el.innerText = `${remaining}/${fullSize}`;
-        }
-      });
-    }
-
-    /* Retro Web Audio API Sound FX */
     const playSynthSound = (freq = 440, type = 'sine', duration = 0.08) => {
       try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-        const ctx = new AudioCtx();
+        const ctx = getAudioContext();
+        if (!ctx) return;
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = type;
@@ -794,6 +754,94 @@
       } catch (e) {}
     };
 
+    /* Helper: Calculate Drawn Items and Pool Counts directly from History */
+    function getDrawnPoolsFromHistory() {
+      const history = getHistoryList();
+      const drawnMap = { pingpei: [], tianli: [], toushi: [], dayang: [] };
+
+      history.forEach(item => {
+        if (!CATEGORY_POOLS[item.type]) return;
+        const pool = CATEGORY_POOLS[item.type];
+        
+        let matchIdx = -1;
+        if (item.type === 'tianli') {
+          matchIdx = pool.findIndex(p => p.val === item.val && p.subType === item.subType);
+        } else {
+          matchIdx = pool.findIndex(p => p.val === item.val);
+        }
+
+        if (matchIdx !== -1 && !drawnMap[item.type].includes(matchIdx)) {
+          drawnMap[item.type].push(matchIdx);
+        }
+      });
+
+      return drawnMap;
+    }
+
+    /* Non-Repeating Drawer Algorithm */
+    function getNextQuestion(type) {
+      const drawnMap = getDrawnPoolsFromHistory();
+      const fullPool = CATEGORY_POOLS[type];
+
+      let availableIndices = [];
+      for (let i = 0; i < fullPool.length; i++) {
+        if (!drawnMap[type].includes(i)) {
+          availableIndices.push(i);
+        }
+      }
+
+      // If all items in this category are drawn, reset pool
+      if (availableIndices.length === 0) {
+        for (let i = 0; i < fullPool.length; i++) availableIndices.push(i);
+      }
+
+      const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+      return fullPool[randomIndex];
+    }
+
+    function updatePoolCounters() {
+      const drawnMap = getDrawnPoolsFromHistory();
+
+      Object.keys(CATEGORY_POOLS).forEach(type => {
+        const fullSize = CATEGORY_POOLS[type].length;
+        const drawnSize = drawnMap[type].length;
+        const remaining = fullSize - drawnSize;
+        const el = document.getElementById(`cnt-${type}`);
+        if (el) {
+          el.innerText = `${remaining}/${fullSize}`;
+        }
+      });
+    }
+
+    /* Restore Today's Latest Draw Results on Draw Page Load/Switch */
+    function restoreTodayLatestResults() {
+      const history = getHistoryList();
+      const now = new Date();
+      const todayStr = `${now.getFullYear()} / ${String(now.getMonth() + 1).padStart(2, '0')} / ${String(now.getDate()).padStart(2, '0')}`;
+
+      // Reset all cards to empty first
+      ['pingpei', 'tianli', 'toushi', 'dayang'].forEach(type => {
+        const el = document.getElementById(`res-${type}`);
+        if (el) el.innerText = '';
+      });
+      updateTianLiBadges(null);
+
+      // Find today's latest result for each category
+      const categories = ['pingpei', 'tianli', 'toushi', 'dayang'];
+      categories.forEach(type => {
+        const latestRecord = history.find(item => {
+          const itemDate = formatTimestamp(item.timestamp).date;
+          return item.type === type && itemDate === todayStr;
+        });
+
+        if (latestRecord) {
+          const el = document.getElementById(`res-${type}`);
+          if (el) el.innerText = latestRecord.val;
+          if (type === 'tianli') updateTianLiBadges(latestRecord.subType);
+        }
+      });
+    }
+
     /* Tab Switcher */
     function switchTab(tab) {
       playSynthSound(600, 'triangle', 0.05);
@@ -804,6 +852,7 @@
         document.querySelectorAll('.tab-btn')[0].classList.add('active');
         document.getElementById('view-draw').classList.add('active');
         updatePoolCounters();
+        restoreTodayLatestResults();
       } else {
         document.querySelectorAll('.tab-btn')[1].classList.add('active');
         document.getElementById('view-history').classList.add('active');
@@ -857,6 +906,8 @@
             subType: finalResult.subType,
             timestamp: Date.now()
           }]);
+
+          updatePoolCounters();
         }
       }, 50);
     }
@@ -897,6 +948,7 @@
 
               if (newRecords.length === 4) {
                 saveRecordToHistory(newRecords);
+                updatePoolCounters();
               }
             }
           }, 40);
@@ -941,6 +993,9 @@
       let history = getHistoryList();
       history = history.filter(item => item.id !== id);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+      
+      // Recalculate and update available pools immediately
+      updatePoolCounters();
       renderHistory();
     }
 
@@ -948,8 +1003,8 @@
       if (confirm('確定要清除所有抽題紀錄？')) {
         playSynthSound(150, 'sawtooth', 0.2);
         localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(DRAWN_STATE_KEY);
         updatePoolCounters();
+        restoreTodayLatestResults();
         renderHistory();
       }
     }
@@ -1060,8 +1115,9 @@
       container.innerHTML = html;
     }
 
-    // Initialize counters on load
+    // Initialize on page load
     updatePoolCounters();
+    restoreTodayLatestResults();
   </script>
 </body>
 </html>
